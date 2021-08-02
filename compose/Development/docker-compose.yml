@@ -1,0 +1,27 @@
+version: '3.5'
+
+services:
+  web:
+    image: pluswerk/node-dev:lts
+
+    volumes:
+      - .:/app
+      - ~/.ssh:/home/node/.ssh
+      - ~/.gitconfig:/home/node/.gitconfig
+    working_dir: /app
+    expose:
+      - 8080
+    environment:
+      #     Take a look at VIRTUAL_* in the documentation under Nginx Reverse Proxy
+      - VIRTUAL_HOST=fire.${TLD_DOMAIN:?TLD_DOMAIN is required}
+      - VIRTUAL_PORT=8080
+      #     - HTTPS_METHOD=noredirect
+      - APPLICATION_UID=${APPLICATION_UID:-1000}
+      - APPLICATION_GID=${APPLICATION_GID:-1000}
+    entrypoint: tail -f /dev/null
+
+
+networks:
+  default:
+    external:
+      name: global
