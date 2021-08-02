@@ -1,58 +1,83 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <v-container>
+    <v-row>
+      <v-col cols="12">
+        <v-img
+                :src="require('../assets/logo.svg')"
+                class="my-3"
+                contain
+                height="200"
+        />
+      </v-col>
+
+      <v-col cols="12" class="text-center">
+        <h1 class="display-2 font-weight-bold mb-3">
+          FIRE Bewegung, wo stehst du?
+        </h1>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-text-field label="Wie alt bist du?" type="date" v-model="localStorage.birthday"/>
+        <v-text-field label="Wie groß ist dein Nettovermögen?" type="number" v-model.number="localStorage.netWorth"/>
+      </v-col>
+      <v-col cols="12" sm="6" lg="4">
+        <NetWorthDisplay :byAge="true"/>
+        <NetWorthDisplay :byAge="false"/>
+      </v-col>
+      <v-col cols="12">
+        <v-divider></v-divider>
+      </v-col>
+      <v-col cols="12" lg="4">
+        <v-text-field label="Wie viel Netto Einnahmen hast du jeden Monat?" type="number"
+                      v-model.number="localStorage.netIncomeMonthly"/>
+        <v-text-field label="Wie viel legst du jeden Monat zur Seite?" type="number"
+                      v-model.number="localStorage.savingMonthly"/>
+      </v-col>
+      <v-col cols="12" sm="6" lg="4">
+        <NetIncomeDisplay :byAge="true"/>
+        <NetIncomeDisplay :byAge="false"/>
+      </v-col>
+      <v-col cols="12" sm="6" lg="4" v-if="isFinite(localStorage.netIncomeMonthly)">
+        <p>Du legst <span class="text-h3">{{ savingsRate | number }}%</span> deiner Einnahmen zur Seite.</p>
+        <p>Du gibst jeden Monat<span class="text-h4">{{ monthlyLivingCost | number }}€</span> aus.</p>
+        <p>
+          <span class="text-h4">{{ livingCostPercentile | number }}%</span> aller Deutschen könnten sich diesen lebensstil nicht leisten.
+        </p>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+<script lang="ts">
+import {Component, Vue} from 'vue-property-decorator';
+
+import NetIncomeDisplay from "@/components/NetIncomeDisplay.vue";
+import NetWorthDisplay from "@/components/NetWorthDisplay.vue";
+import {getPercentileNetIncomeMonthly} from "@/data/netIncomeMonthly";
+
+@Component({
+  components: {
+    NetWorthDisplay,
+    NetIncomeDisplay,
+  }
+})
+export default class HelloWorld extends Vue {
+  get monthlyLivingCost(): number {
+    if (!this.localStorage.netIncomeMonthly) {
+      return 0;
+    }
+    return this.localStorage.netIncomeMonthly - this.localStorage.savingMonthly;
+  }
+
+  get savingsRate(): number {
+    if (!this.localStorage.netIncomeMonthly) {
+      return 0;
+    }
+    return 100 / this.localStorage.netIncomeMonthly * this.localStorage.savingMonthly;
+  }
+
+  get livingCostPercentile(): number {
+    return getPercentileNetIncomeMonthly(this.monthlyLivingCost);
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
