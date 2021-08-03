@@ -3,4 +3,5 @@ export interface LocalStorageType {
   netWorth: number,
   netIncomeMonthly: number | undefined,
   savingMonthly: number,
+  invested: number,
 }

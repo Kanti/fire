@@ -10,6 +10,7 @@ Vue.use(reactiveStorage, <LocalStorageType>{
   netWorth: 0,
   netIncomeMonthly: undefined,
   savingMonthly: 0,
+  invested: 0,
 });
 
 Vue.filter('number', (value: number): string => {

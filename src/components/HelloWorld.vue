@@ -41,8 +41,46 @@
         <p>Du legst <span class="text-h3">{{ savingsRate | number }}%</span> deiner Einnahmen zur Seite.</p>
         <p>Du gibst jeden Monat<span class="text-h4">{{ monthlyLivingCost | number }}€</span> aus.</p>
         <p>
-          <span class="text-h4">{{ livingCostPercentile | number }}%</span> aller Deutschen könnten sich diesen lebensstil nicht leisten.
+          <span class="text-h4">{{ livingCostPercentile | number }}%</span> aller Deutschen könnten sich diesen
+          lebensstil nicht leisten.
         </p>
+        <p><span class="text-h4">{{ monthlyLivingCost * 6 | number }}€</span> solltest du als Notgroschen haben.</p>
+        <p><span class="text-h4">{{ fireNumber | number }}€</span> ist deine FIRE Zahl <span class="text-caption">(benötigst
+          du um Finanziell frei zu sein.)</span>.</p>
+      </v-col>
+      <v-col cols="12">
+        <v-divider></v-divider>
+      </v-col>
+      <v-col cols="12" lg="4">
+        <v-text-field label="Wie viel hast du in Aktien Investiert?" type="number"
+                      v-model.number="localStorage.invested"/>
+      </v-col>
+      <v-col cols="12" sm="8" v-if="isFinite(localStorage.invested)">
+        <p>Laut der 4% Regel könntest du ein Monatliches einkommen von
+          <span class="text-h3">{{ localStorage.invested * 0.04 / 12| number }}€</span> haben.</p>
+        <p>In einem Jahr hast du <span class="text-h4">{{inOneYear | number}}€</span> investiert.</p>
+        <p>In einem 2 Jahren hast du <span class="text-h4">{{inTwoYears | number}}€</span> investiert.</p>
+      </v-col>
+      <v-col cols="12" v-if="isFinite(localStorage.invested) && isFinite(localStorage.invested)">
+        <v-sparkline
+                :value="graphData"
+                :gradient="['red', 'orange', 'yellow']"
+                color="rgba(255, 255, 255, .7)"
+                height="100"
+                padding="10"
+                stroke-linecap="round"
+                smooth
+                fill
+                radius="0"
+                auto-draw
+
+        >
+          <template v-slot:label="item">
+            <template v-if="item.index % Math.round(graphData.length/5) === 0">
+              {{item.index + new Date().getFullYear()}}
+            </template>
+          </template>
+        </v-sparkline>
       </v-col>
     </v-row>
   </v-container>
@@ -78,6 +116,30 @@ export default class HelloWorld extends Vue {
 
   get livingCostPercentile(): number {
     return getPercentileNetIncomeMonthly(this.monthlyLivingCost);
+  }
+
+  get fireNumber(): number {
+    return this.monthlyLivingCost / 0.04 * 12;
+  }
+
+  get inOneYear(): number {
+    return this.savingsRate * 12 + this.localStorage.invested * 1.07;
+  }
+  get inTwoYears(): number {
+    return this.savingsRate * 12 + this.inOneYear * 1.07;
+  }
+  get graphData(): number[] {
+    let runningValue = this.localStorage.invested;
+    let runningFireNumber = this.fireNumber;
+    const resultArray = [
+      runningValue,
+    ];
+    while (runningValue < runningFireNumber){
+      runningValue = this.localStorage.savingMonthly * 12 + runningValue * 1.07;
+      runningFireNumber *= 1.02;
+      resultArray.push(runningValue);
+    }
+    return resultArray;
   }
 }
 </script>
